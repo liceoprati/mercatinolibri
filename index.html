@@ -544,13 +544,13 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); backgro
 
 <!-- MODAL ADOZIONI -->
 <div class="modal-bg" id="adozioni-modal">
-  <div class="modal" style="max-width:460px;">
+  <div class="modal" style="max-width:500px;">
     <button class="modal-close" onclick="closeModal('adozioni-modal')">✕</button>
     <h2>Lista adozioni</h2>
-    <p class="modal-sub">Inserisci i titoli dei libri adottati per questa classe. Ogni riga = un libro.</p>
+    <p class="modal-sub">Inserisci i libri adottati per la tua classe, uno alla volta.</p>
     <div class="form-group">
       <label class="form-label">Classe *</label>
-      <select id="ad-classe">
+      <select id="ad-classe" onchange="loadAdozioniEdit()">
         <option value="">Scegli...</option>
         <optgroup label="Liceo">
         <option>I Archimede</option><option>I Euripide</option><option>I Erodoto</option><option>I Pitagora</option>
@@ -563,11 +563,26 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); backgro
         </optgroup>
       </select>
     </div>
-    <div class="form-group">
-      <label class="form-label">Libri adottati (uno per riga) *</label>
-      <textarea id="ad-libri" rows="8" placeholder="Es:&#10;Matematica.blu 4&#10;Promessi Sposi&#10;Storia moderna vol.2" style="resize:vertical;"></textarea>
+    <div id="ad-lista-esistente" style="display:none;margin-bottom:14px;">
+      <label class="form-label">Libri già inseriti</label>
+      <div id="ad-libri-esistenti" style="display:flex;flex-direction:column;gap:6px;margin-top:6px;"></div>
     </div>
-    <button class="submit-btn" id="ad-submit-btn" onclick="submitAdozioni()">Salva lista</button>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Titolo libro *</label>
+        <input type="text" id="ad-titolo" placeholder="Es. Matematica.blu 4" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Materia *</label>
+        <select id="ad-materia">
+          <option value="">Scegli...</option>
+          <option>matematica</option><option>italiano</option><option>scienze</option>
+          <option>storia</option><option>inglese</option><option>fisica</option>
+          <option>filosofia</option><option>greco</option><option>latino</option><option>arte</option><option>altro</option>
+        </select>
+      </div>
+    </div>
+    <button class="submit-btn" id="ad-submit-btn" onclick="submitAdozione()">+ Aggiungi libro</button>
     <p class="form-feedback" id="ad-feedback"></p>
   </div>
 </div>
@@ -578,39 +593,34 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); backgro
     <button class="modal-close" onclick="closeModal('sell-modal')">✕</button>
     <h2>Metti in vendita</h2>
     <p class="modal-sub">Il tuo annuncio sarà visibile a tutti finché non viene contattato.</p>
-    <div class="form-group">
-      <label class="form-label">Titolo *</label>
-      <input type="text" id="f-titolo" placeholder="Es. Matematica.blu 4" />
-    </div>
-    <div class="form-group">
-      <label class="form-label">Autore</label>
-      <input type="text" id="f-autore" placeholder="Es. Bergamini, Barozzi" />
-    </div>
     <div class="form-row">
       <div class="form-group">
+        <label class="form-label">Anno del libro *</label>
+        <select id="f-anno" onchange="loadTitoliSuggeriti()">
+          <option value="">Scegli...</option>
+          <optgroup label="Liceo"><option>I</option><option>II</option><option>III</option></optgroup>
+          <optgroup label="Ginnasio"><option>IV</option><option>V</option></optgroup>
+        </select>
+      </div>
+      <div class="form-group">
         <label class="form-label">Materia *</label>
-        <select id="f-materia">
+        <select id="f-materia" onchange="loadTitoliSuggeriti()">
           <option value="">Scegli...</option>
           <option>matematica</option><option>italiano</option><option>scienze</option>
           <option>storia</option><option>inglese</option><option>fisica</option>
           <option>filosofia</option><option>greco</option><option>latino</option><option>arte</option><option>altro</option>
         </select>
       </div>
-      <div class="form-group">
-        <label class="form-label">Classe</label>
-        <select id="f-classe">
-          <option value="">Scegli...</option>
-          <optgroup label="Liceo">
-          <option>I Archimede</option><option>I Euripide</option><option>I Erodoto</option><option>I Pitagora</option>
-          <option>II Archimede</option><option>II Euripide</option><option>II Erodoto</option><option>II Pitagora</option>
-          <option>III Archimede</option><option>III Euripide</option><option>III Erodoto</option><option>III Pitagora</option>
-          </optgroup>
-          <optgroup label="Ginnasio">
-          <option>IV Archimede</option><option>IV Euripide</option><option>IV Erodoto</option><option>IV Pitagora</option>
-          <option>V Archimede</option><option>V Euripide</option><option>V Erodoto</option><option>V Pitagora</option>
-          </optgroup>
-        </select>
-      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Titolo *</label>
+      <div id="f-titolo-suggeriti" style="display:none;margin-bottom:6px;display:flex;flex-wrap:wrap;gap:6px;"></div>
+      <input type="text" id="f-titolo" placeholder="Es. Matematica.blu 4" />
+      <p style="font-size:11px;color:var(--muted);margin-top:4px;" id="f-titolo-hint"></p>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Autore</label>
+      <input type="text" id="f-autore" placeholder="Es. Bergamini, Barozzi" />
     </div>
     <div class="form-row">
       <div class="form-group">
@@ -755,49 +765,135 @@ function setClasse(val, el) {
   }
 }
 
+let adozioniCache = {}; // classe -> [{titolo, materia, id}]
+
+async function loadAdozioniEdit() {
+  const classe = document.getElementById('ad-classe').value;
+  if (!classe) return;
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/adozioni?classe=eq.${encodeURIComponent(classe)}&select=id,titolo,materia&order=materia.asc`, {
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
+  });
+  const data = await res.json();
+  const container = document.getElementById('ad-libri-esistenti');
+  const wrapper = document.getElementById('ad-lista-esistente');
+  if (data && data.length > 0) {
+    wrapper.style.display = 'block';
+    container.innerHTML = data.map(b => `
+      <div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--bg);border-radius:8px;font-size:13px;">
+        <span style="flex:1;"><strong>${b.titolo}</strong> <span style="color:var(--muted);">(${b.materia})</span></span>
+        <button onclick="deleteAdozione('${b.id}')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;line-height:1;">×</button>
+      </div>`).join('');
+  } else {
+    wrapper.style.display = 'none';
+  }
+}
+
+async function deleteAdozione(id) {
+  await fetch(`${SUPABASE_URL}/rest/v1/adozioni?id=eq.${id}`, {
+    method: 'DELETE',
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
+  });
+  loadAdozioniEdit();
+  adozioniCache = {};
+}
+
+async function submitAdozione() {
+  const classe = document.getElementById('ad-classe').value;
+  const titolo = document.getElementById('ad-titolo').value.trim();
+  const materia = document.getElementById('ad-materia').value;
+  const fb = document.getElementById('ad-feedback');
+  fb.className = 'form-feedback';
+  if (!classe || !titolo || !materia) { fb.textContent = 'Compila tutti i campi.'; fb.classList.add('err'); return; }
+  const btn = document.getElementById('ad-submit-btn');
+  btn.disabled = true; btn.textContent = 'Salvataggio...';
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/adozioni`, {
+    method: 'POST',
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+    body: JSON.stringify({ classe, titolo, materia })
+  });
+  btn.disabled = false; btn.textContent = '+ Aggiungi libro';
+  if (res.ok || res.status === 201) {
+    fb.textContent = '✓ Aggiunto!'; fb.classList.add('ok');
+    document.getElementById('ad-titolo').value = '';
+    document.getElementById('ad-materia').value = '';
+    adozioniCache = {};
+    loadAdozioniEdit();
+    setTimeout(() => fb.textContent = '', 1500);
+  } else {
+    fb.textContent = 'Errore. Riprova.'; fb.classList.add('err');
+  }
+}
+
+async function getAdozioniPerAnnoMateria(anno, materia) {
+  const key = anno + '_' + materia;
+  if (adozioniCache[key]) return adozioniCache[key];
+  // Cerca in tutte le classi di quell'anno
+  const sezioni = ['Archimede','Euripide','Erodoto','Pitagora'];
+  const classi = sezioni.map(s => `${anno} ${s}`);
+  const filter = classi.map(c => `classe=eq.${encodeURIComponent(c)}`).join(',');
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/adozioni?or=(${filter})&materia=eq.${encodeURIComponent(materia)}&select=titolo,classe`, {
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
+  });
+  const data = await res.json();
+  adozioniCache[key] = data || [];
+  return adozioniCache[key];
+}
+
+async function loadTitoliSuggeriti() {
+  const anno = document.getElementById('f-anno').value;
+  const materia = document.getElementById('f-materia').value;
+  const sugBox = document.getElementById('f-titolo-suggeriti');
+  const hint = document.getElementById('f-titolo-hint');
+  if (!anno || !materia) { sugBox.style.display = 'none'; hint.textContent = ''; return; }
+  const adozioni = await getAdozioniPerAnnoMateria(anno, materia);
+  // Deduplica per titolo
+  const unici = [...new Map(adozioni.map(a => [a.titolo, a])).values()];
+  if (unici.length > 0) {
+    sugBox.style.display = 'flex';
+    hint.textContent = 'Seleziona dalla lista adozioni oppure scrivi manualmente:';
+    sugBox.innerHTML = unici.map(a => `
+      <button onclick="selezionaTitolo('${a.titolo.replace(/'/g,"\\'")}',this)" style="padding:5px 10px;border:1px solid var(--border);border-radius:8px;background:var(--bg);font-size:13px;cursor:pointer;color:var(--text);">${a.titolo}</button>
+    `).join('');
+  } else {
+    sugBox.style.display = 'none';
+    hint.textContent = 'Lista adozioni non ancora inserita — scrivi il titolo manualmente.';
+  }
+}
+
+function selezionaTitolo(titolo, btn) {
+  document.getElementById('f-titolo').value = titolo;
+  document.querySelectorAll('#f-titolo-suggeriti button').forEach(b => b.style.background = 'var(--bg)');
+  btn.style.background = 'var(--accent-light)';
+  btn.style.borderColor = 'var(--accent)';
+}
+
 async function loadAdozioni(classe) {
   const banner = document.getElementById('adozioni-banner');
   const list = document.getElementById('adozioni-list');
   const label = document.getElementById('adozioni-classe-label');
-  label.textContent = classe + ' superiore';
+  label.textContent = classe;
   banner.style.display = 'block';
   list.innerHTML = '<span style="font-size:13px;color:var(--muted);">Caricamento...</span>';
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/adozioni?classe=eq.${encodeURIComponent(classe)}&order=created_at.desc&limit=1`, {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/adozioni?classe=eq.${encodeURIComponent(classe)}&select=titolo,materia&order=materia.asc`, {
     headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
   });
   const data = await res.json();
   if (!data || data.length === 0) {
     list.innerHTML = '<span style="font-size:13px;color:var(--muted);">📭 Lista non ancora inserita dai rappresentanti.</span>';
   } else {
-    const record = data[0];
-    const titoli = record.libri.split('\n').map(t => t.trim()).filter(Boolean);
-    list.innerHTML = `<p style="font-size:11px;color:var(--muted);margin-bottom:8px;">Aggiornata il ${new Date(record.created_at).toLocaleDateString('it-IT')}</p>` +
-      titoli.map(t => `<div style="padding:6px 0;border-bottom:1px solid var(--border);font-size:14px;">📖 ${t}</div>`).join('');
+    // Raggruppa per materia
+    const byMateria = {};
+    data.forEach(b => { if (!byMateria[b.materia]) byMateria[b.materia] = []; byMateria[b.materia].push(b.titolo); });
+    list.innerHTML = Object.entries(byMateria).map(([mat, titoli]) =>
+      `<div style="margin-bottom:8px;">
+        <div style="font-size:11px;font-weight:600;text-transform:uppercase;color:var(--muted);letter-spacing:0.5px;margin-bottom:4px;">${mat}</div>
+        ${titoli.map(t => `<div style="padding:4px 0;font-size:14px;">📖 ${t}</div>`).join('')}
+      </div>`
+    ).join('');
   }
 }
 
-async function submitAdozioni() {
-  const classe = document.getElementById('ad-classe').value;
-  const libri = document.getElementById('ad-libri').value.trim();
-  const fb = document.getElementById('ad-feedback');
-  fb.className = 'form-feedback';
-  if (!classe || !libri) { fb.textContent = 'Inserisci classe e libri.'; fb.classList.add('err'); return; }
-  const btn = document.getElementById('ad-submit-btn');
-  btn.disabled = true; btn.textContent = 'Salvataggio...';
-  const payload = { classe, libri };
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/adozioni`, {
-    method: 'POST',
-    headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
-    body: JSON.stringify(payload)
-  });
-  btn.disabled = false; btn.textContent = 'Salva lista';
-  if (res.ok || res.status === 201) {
-    fb.textContent = '✓ Lista salvata!'; fb.classList.add('ok');
-    setTimeout(() => { closeModal('adozioni-modal'); loadAdozioni(classe); fb.textContent = ''; }, 1200);
-  } else {
-    fb.textContent = 'Errore. Riprova.'; fb.classList.add('err');
-  }
-}
+async function submitAdozioni() {} // kept for compatibility
 let userLat = null, userLng = null;
 let currentContactId = null;
 let filterTimeout = null;
@@ -828,7 +924,9 @@ function getFilteredBooks() {
   const q = document.getElementById('search').value.toLowerCase().trim();
   return allBooks.filter(b => {
     const matchFilter = activeFilter === 'tutti' || b.materia === activeFilter;
-    const matchClasse = activeClasse === 'tutte' || b.classe === activeClasse;
+    // activeClasse è tipo "I Archimede", b.classe è tipo "I" — confronta anno
+    const anno = activeClasse === 'tutte' ? null : activeClasse.split(' ')[0];
+    const matchClasse = !anno || b.classe === anno;
     const matchQ = !q || (b.titolo||'').toLowerCase().includes(q) || (b.autore||'').toLowerCase().includes(q) || (b.materia||'').toLowerCase().includes(q);
     return matchFilter && matchClasse && matchQ;
   });
@@ -1025,9 +1123,10 @@ async function submitBook() {
   const condizione = document.getElementById('f-condizione').value;
   const nome = document.getElementById('f-nome').value.trim();
   const contatto = document.getElementById('f-contatto').value.trim();
+  const anno = document.getElementById('f-anno').value;
   const fb = document.getElementById('form-feedback');
   fb.className = 'form-feedback';
-  if (!titolo || !materia || !condizione || !nome || !contatto) {
+  if (!titolo || !materia || !condizione || !nome || !contatto || !anno) {
     fb.textContent = 'Compila tutti i campi obbligatori (*)';
     fb.classList.add('err');
     return;
@@ -1042,7 +1141,7 @@ async function submitBook() {
     materia,
     condizione,
     prezzo: prezzo ? parseFloat(prezzo) : null,
-    classe: document.getElementById('f-classe').value || null,
+    classe: anno,
     venditore: nome,
     contatto,
     lat: userLat,
@@ -1068,8 +1167,10 @@ async function submitBook() {
     document.getElementById('delete-link-text').textContent = deleteUrl;
     ['f-titolo','f-autore','f-prezzo','f-nome','f-contatto'].forEach(id => document.getElementById(id).value='');
     document.getElementById('f-materia').value='';
-    document.getElementById('f-classe').value='';
+    document.getElementById('f-anno').value='';
     document.getElementById('f-condizione').value='';
+    document.getElementById('f-titolo-suggeriti').style.display='none';
+    document.getElementById('f-titolo-hint').textContent='';
     closeModal('sell-modal');
     openModal('delete-link-modal');
     fetchBooks();
