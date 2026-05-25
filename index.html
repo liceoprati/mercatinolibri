@@ -552,12 +552,12 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); backgro
       <label class="form-label">Classe *</label>
       <select id="ad-classe">
         <option value="">Scegli...</option>
-        <optgroup label="Ginnasio">
+        <optgroup label="Liceo">
         <option>I Archimede</option><option>I Euripide</option><option>I Erodoto</option><option>I Pitagora</option>
         <option>II Archimede</option><option>II Euripide</option><option>II Erodoto</option><option>II Pitagora</option>
-        </optgroup>
-        <optgroup label="Liceo">
         <option>III Archimede</option><option>III Euripide</option><option>III Erodoto</option><option>III Pitagora</option>
+        </optgroup>
+        <optgroup label="Ginnasio">
         <option>IV Archimede</option><option>IV Euripide</option><option>IV Erodoto</option><option>IV Pitagora</option>
         <option>V Archimede</option><option>V Euripide</option><option>V Erodoto</option><option>V Pitagora</option>
         </optgroup>
@@ -566,10 +566,6 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); backgro
     <div class="form-group">
       <label class="form-label">Libri adottati (uno per riga) *</label>
       <textarea id="ad-libri" rows="8" placeholder="Es:&#10;Matematica.blu 4&#10;Promessi Sposi&#10;Storia moderna vol.2" style="resize:vertical;"></textarea>
-    </div>
-    <div class="form-group">
-      <label class="form-label">Sezione (opzionale)</label>
-      <input type="text" id="ad-sezione" placeholder="Es. A, B, C..." />
     </div>
     <button class="submit-btn" id="ad-submit-btn" onclick="submitAdozioni()">Salva lista</button>
     <p class="form-feedback" id="ad-feedback"></p>
@@ -604,12 +600,12 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); backgro
         <label class="form-label">Classe</label>
         <select id="f-classe">
           <option value="">Scegli...</option>
-          <optgroup label="Ginnasio">
+          <optgroup label="Liceo">
           <option>I Archimede</option><option>I Euripide</option><option>I Erodoto</option><option>I Pitagora</option>
           <option>II Archimede</option><option>II Euripide</option><option>II Erodoto</option><option>II Pitagora</option>
-          </optgroup>
-          <optgroup label="Liceo">
           <option>III Archimede</option><option>III Euripide</option><option>III Erodoto</option><option>III Pitagora</option>
+          </optgroup>
+          <optgroup label="Ginnasio">
           <option>IV Archimede</option><option>IV Euripide</option><option>IV Erodoto</option><option>IV Pitagora</option>
           <option>V Archimede</option><option>V Euripide</option><option>V Erodoto</option><option>V Pitagora</option>
           </optgroup>
@@ -775,8 +771,7 @@ async function loadAdozioni(classe) {
   } else {
     const record = data[0];
     const titoli = record.libri.split('\n').map(t => t.trim()).filter(Boolean);
-    const sezione = record.sezione ? ` — sez. ${record.sezione}` : '';
-    list.innerHTML = `<p style="font-size:11px;color:var(--muted);margin-bottom:8px;">Aggiornata il ${new Date(record.created_at).toLocaleDateString('it-IT')}${sezione}</p>` +
+    list.innerHTML = `<p style="font-size:11px;color:var(--muted);margin-bottom:8px;">Aggiornata il ${new Date(record.created_at).toLocaleDateString('it-IT')}</p>` +
       titoli.map(t => `<div style="padding:6px 0;border-bottom:1px solid var(--border);font-size:14px;">📖 ${t}</div>`).join('');
   }
 }
@@ -789,7 +784,7 @@ async function submitAdozioni() {
   if (!classe || !libri) { fb.textContent = 'Inserisci classe e libri.'; fb.classList.add('err'); return; }
   const btn = document.getElementById('ad-submit-btn');
   btn.disabled = true; btn.textContent = 'Salvataggio...';
-  const payload = { classe, libri, sezione: document.getElementById('ad-sezione').value.trim() || null };
+  const payload = { classe, libri };
   const res = await fetch(`${SUPABASE_URL}/rest/v1/adozioni`, {
     method: 'POST',
     headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
