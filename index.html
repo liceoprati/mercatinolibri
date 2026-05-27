@@ -636,6 +636,23 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); backgro
       </div>
     </div>
     <div class="form-group">
+      <label class="form-label">Da dove vendi? *</label>
+      <select id="f-zona">
+        <option value="">Scegli la tua zona...</option>
+        <option value="Trento città">Trento città</option>
+        <option value="Valle dei Laghi">Valle dei Laghi</option>
+        <option value="Val di Non">Val di Non</option>
+        <option value="Val di Sole">Val di Sole</option>
+        <option value="Val di Fassa">Val di Fassa</option>
+        <option value="Valsugana / Altopiano di Pinè">Valsugana / Altopiano di Pinè</option>
+        <option value="Vallagarina">Vallagarina (Rovereto e dintorni)</option>
+        <option value="Giudicarie">Giudicarie</option>
+        <option value="Val d'Adige">Val d'Adige (Lavis, Mezzocorona...)</option>
+        <option value="Alto Garda">Alto Garda (Riva, Arco...)</option>
+        <option value="Altro">Altro / Fuori provincia</option>
+      </select>
+    </div>
+    <div class="form-group">
       <label class="form-label">Il tuo nome *</label>
       <input type="text" id="f-nome" placeholder="Es. Giulia R." />
     </div>
@@ -749,7 +766,19 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); backgro
 const SUPABASE_URL = 'https://ywfjkixpyvsfjkodisdo.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl3ZmpraXhweXZzZmprb2Rpc2RvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk2MjU5OTQsImV4cCI6MjA5NTIwMTk5NH0.-K2ItC4VQrFPDfjaQRy0TMKCa6I56wVvLJucCJm2Sno';
 
-let allBooks = [];
+const ZONE_COORDS = {
+  'Trento città':            { lat: 46.0748, lng: 11.1217 },
+  'Valle dei Laghi':         { lat: 46.0200, lng: 10.9800 },
+  'Val di Non':              { lat: 46.3800, lng: 11.0500 },
+  'Val di Sole':             { lat: 46.3200, lng: 10.7500 },
+  'Val di Fassa':            { lat: 46.4200, lng: 11.6800 },
+  'Valsugana / Altopiano di Pinè': { lat: 46.0500, lng: 11.3800 },
+  'Vallagarina':             { lat: 45.8900, lng: 11.0400 },
+  'Giudicarie':              { lat: 46.0000, lng: 10.6500 },
+  "Val d'Adige":             { lat: 46.1500, lng: 11.1000 },
+  'Alto Garda':              { lat: 45.9200, lng: 10.8400 },
+  'Altro':                   { lat: 46.0748, lng: 11.1217 },
+};
 let activeFilter = 'tutti';
 let activeClasse = 'tutte';
 
@@ -970,7 +999,8 @@ function renderList(list) {
   grid.innerHTML = list.map((b,i) => {
     const initials = (b.venditore||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
     const condClass = 'tag-cond-'+(b.condizione||'buona').toLowerCase();
-    const dist = (userLat && b.lat) ? `<span class="dist-badge">📍 ${formatDist(haversine(userLat,userLng,b.lat,b.lng))}</span>` : '';
+    const dist = (userLat && b.lat) ? ` · ${formatDist(haversine(userLat,userLng,b.lat,b.lng))}` : '';
+    const zonaLabel = b.zona ? `<span class="dist-badge">📍 ${b.zona}${dist}</span>` : '';
     const prezzoHtml = b.prezzo ? `<span class="price">${b.prenotato ? '<span style="text-decoration:line-through;opacity:0.4">€'+b.prezzo+'</span>' : '€'+b.prezzo}</span>` : `<span class="price free">🎁 Regalo</span>`;
     const prenotatoBadge = b.prenotato ? `<span class="tag" style="background:#FFF3CD;color:#856404;">⏳ Prenotato</span>` : '';
     const contactBtn = b.prenotato
@@ -992,7 +1022,7 @@ function renderList(list) {
         </div>
         <div class="book-footer">
           <div class="seller-avatar">${initials}</div>
-          <span class="seller-name">${b.venditore} ${dist}</span>
+          <span class="seller-name">${b.venditore} ${zonaLabel}</span>
           ${prezzoHtml}
           ${contactBtn}
         </div>
@@ -1124,9 +1154,10 @@ async function submitBook() {
   const nome = document.getElementById('f-nome').value.trim();
   const contatto = document.getElementById('f-contatto').value.trim();
   const anno = document.getElementById('f-anno').value;
+  const zona = document.getElementById('f-zona').value;
   const fb = document.getElementById('form-feedback');
   fb.className = 'form-feedback';
-  if (!titolo || !materia || !condizione || !nome || !contatto || !anno) {
+  if (!titolo || !materia || !condizione || !nome || !contatto || !anno || !zona) {
     fb.textContent = 'Compila tutti i campi obbligatori (*)';
     fb.classList.add('err');
     return;
@@ -1135,6 +1166,7 @@ async function submitBook() {
   btn.disabled = true;
   btn.textContent = 'Pubblicazione...';
   const prezzo = document.getElementById('f-prezzo').value;
+  const coords = ZONE_COORDS[zona] || { lat: 46.0748, lng: 11.1217 };
   const payload = {
     titolo,
     autore: document.getElementById('f-autore').value.trim() || null,
@@ -1144,8 +1176,9 @@ async function submitBook() {
     classe: anno,
     venditore: nome,
     contatto,
-    lat: userLat,
-    lng: userLng,
+    lat: coords.lat,
+    lng: coords.lng,
+    zona,
     disponibile: true
   };
   const res = await fetch(`${SUPABASE_URL}/rest/v1/libri?select=id,delete_token`, {
@@ -1169,6 +1202,7 @@ async function submitBook() {
     document.getElementById('f-materia').value='';
     document.getElementById('f-anno').value='';
     document.getElementById('f-condizione').value='';
+    document.getElementById('f-zona').value='';
     document.getElementById('f-titolo-suggeriti').style.display='none';
     document.getElementById('f-titolo-hint').textContent='';
     closeModal('sell-modal');
